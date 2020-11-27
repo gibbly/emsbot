@@ -28,35 +28,40 @@ botid = int(os.getenv('BOT_ID'))
 
 
 
-async def getstate():
-        try:
-            state = requests.get('https://ems.isitdoneyet.co.uk/api/key/active', auth=(USER, PASS))
-        except:
-            print("there was an error fetching the current state" + str(state))
-        state = json.loads(state.text)
-        return state
+
+
 
 async def updatenowplaying():
 
-    state = await getstate()
     try:
-        member = guild.get_member(int(state['nick']))
-        name = member.display_name
-        usericon = member.avatar_url_as(format=None, static_format="jpg")
-        usericon = str(str(usericon).split('?')[0])
+        state = requests.get('https://ems.isitdoneyet.co.uk/api/key/active', auth=(USER, PASS))
+        state = json.loads(state.text)
+        if 'discord_id' in state:
+            pass
+        else:
+            state["discord_id"] = 0
 
     except:
+        print("there was an error fetching the current state" + str(state))
+
+    if int(state.get('discord_id')) != 0 :
+        try:
+            member = guild.get_member(int(state['discord_id']))
+            name = member.display_name
+            usericon = member.avatar_url_as(format=None, static_format="jpg")
+            usericon = str(str(usericon).split('?')[0])
+        except:
+            name = state['nick']
+            usericon = ''
+            print(str(state) + "invalid discord id")
+    else:
         name = state['nick']
         usericon = ''
-        print(str(state['nick']) + "is not a visible discord id, using raw value instead")
-
-
+        print(name + ' has no discord id')
 
     customdescription = "Custom descriptions coming soon :tm:"
     streamthumbnail = 'https://cdn.discordapp.com/attachments/758341897453437049/758342103779901440/EMS.png'
     customurl = ''
-
-
 
     global laststreamer
     if name != laststreamer:
@@ -76,7 +81,7 @@ async def updatenowplaying():
                 embed.set_footer(text="brought to you by ems ;)")
                 await channel.send(embed=embed)
         except:
-            print()
+            pass
 
 
 @bot.event
@@ -87,28 +92,15 @@ async def on_ready():
     print(guild)
     global channel
     channel = bot.get_channel(channelid)
-    while 1==1:
+    while True:
         try:
             await updatenowplaying()
-            await asyncio.sleep(30)
         except:
-            print("status update failed")
-            await asyncio.sleep(90)
+            await asyncio.sleep(60)
+        await asyncio.sleep(30)
 
 
 
-@bot.event
-async def on_message(message):
-    global botid
-    if str(message.channel) == "now-playing" and message.author.id != int(botid) :
-        await asyncio.sleep(3)
-        await message.channel.purge(limit=1)
-    await bot.process_commands(message)
-
-@bot.command(name='refresh', help='manually fetches now playing data', cat='debug')
-async def refresh(ctx):
-
-        await updatenowplaying()
 
 
 

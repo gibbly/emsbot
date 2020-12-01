@@ -74,12 +74,16 @@ async def updatenowplaying():
                 embed.set_footer(text="brought to you by ems ;)")
                 await channel.send(embed=embed)
                 await channel.send('<@&' + str(ping) + '>')
+                channel2 = bot.get_channel(756541590494904321)
+                await channel2.send(embed=embed)
             else:
                 embed=discord.Embed(title="Now playing: " + name, url="https://www.youtube.com/channel/UCJZX0lhyQyicb9nVDS8R40w/live", description=customdescription)
                 embed.set_author(name= name, url=customurl,icon_url=usericon)
                 embed.set_thumbnail(url=streamthumbnail)
                 embed.set_footer(text="brought to you by ems ;)")
                 await channel.send(embed=embed)
+                channel2 = bot.get_channel(756541590494904321)
+                await channel2.send(embed=embed)
         except:
             pass
 

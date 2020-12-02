@@ -65,7 +65,6 @@ async def updatenowplaying():
 
     global laststreamer
     if name != laststreamer:
-        laststreamer = name
         try:
             if state.get("priority") >= 10:
                 embed=discord.Embed(title="watch " + name + " LIVE NOW!", url="https://www.youtube.com/channel/UCJZX0lhyQyicb9nVDS8R40w/live", description=customdescription)
@@ -84,6 +83,7 @@ async def updatenowplaying():
                 await channel.send(embed=embed)
                 channel2 = bot.get_channel(756541590494904321)
                 await channel2.send(embed=embed)
+            laststreamer = name
         except:
             pass
 

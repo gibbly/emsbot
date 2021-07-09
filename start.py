@@ -30,6 +30,7 @@ default = {
 "streamthumbnail": "https://cdn.discordapp.com/attachments/758341897453437049/758342103779901440/EMS.png",
 "streamdescription": "no u",
 "extraimage": "",
+"priority": "10",
 }
 
 
@@ -47,7 +48,7 @@ async def activeget():
         return state
     except:
         print("there was an error fetching the current state" + err)
-        return{"nick": "error" + err}
+        return{"nick": "error", "priority": "10"}
 
 
 async def userdataget(discord_id):
@@ -100,7 +101,7 @@ async def on_message(message):
         if message.content == "blorp":
             user = await activeget()
             embed = await streamercard(user)
-            if user.get("priority") >= 10:
+            if int(user.get("priority")) >= 10:
                 content = "Come watch " + user.get("nick") + " LIVE " + str(ping.mention)
             else:
                 content = ""

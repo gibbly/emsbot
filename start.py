@@ -157,7 +157,7 @@ async def on_ready():
     print(channel)
 
     global ping
-    ping = intgos.getenv('PING_ROLE_ID'))
+    ping = int(os.getenv('PING_ROLE_ID'))
     ping = guild.get_role(ping)
     print(ping)
 

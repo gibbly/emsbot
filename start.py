@@ -1,11 +1,10 @@
 import os
 import random
 import json
-import requests
+import aiohttp
 import asyncio
 import time
 import discord
-from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -38,14 +37,18 @@ default = {
 async def activeget():
     try:
         err = "the state could not be fetched"
-        state = requests.get('https://ems.isitdoneyet.co.uk/api/key/active', auth=(USER, PASS))
-        err = str(state)
-        state = json.loads(state.text)
-        if 'discord_id' in state:
-            pass
-        else:
-            state["discord_id"] = 0
-        return state
+        auth = aiohttp.BasicAuth(USER, PASS)
+        async with aiohttp.request('GET', 'https://ems.isitdoneyet.co.uk/api/key/active', auth=auth) as r:
+            if r.status == 200 and r.content_type == 'application/json':
+                state = await r.json()
+
+                if 'discord_id' in state:
+                    pass
+                else:
+                    state["discord_id"] = 0
+                return state
+            else:
+                err = await r.text()
     except:
         print("there was an error fetching the current state" + err)
         return{"nick": "error", "priority": "10"}

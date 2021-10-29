@@ -42,13 +42,11 @@ async def activeget():
             if r.status == 200 and r.content_type == 'application/json':
                 state = await r.json()
 
-                if 'discord_id' in state:
-                    pass
-                else:
-                    state["discord_id"] = 0
+                state['discord_id'] = state.get('discord_id', 0)
                 return state
             else:
                 err = await r.text()
+                raise Exception(f'Response was not as expected. Status: {r.status}, Content-Type: {r.content_type}')
     except:
         print("there was an error fetching the current state" + err)
         return{"nick": "error", "priority": "10"}

@@ -102,10 +102,10 @@ async def on_message(message):
         if message.content == "blorp":
             user = await activeget()
             embed = await streamercard(user)
-            if int(user.get("priority")) >= 10:
+            if int(user.get("priority")) > 10:
                 content = "Come watch " + user.get("nick") + " LIVE " + str(ping.mention)
             else:
-                content = ""
+                content = "Hold MuZaK provided by: " + user.get("nick")
             await channel.send(embed=embed, content=content)
 
 #        elif message.content[0] == "+":

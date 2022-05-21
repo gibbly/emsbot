@@ -13,6 +13,8 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 USER = os.getenv('user')
 PASS = os.getenv('pass')
+key_server_url = os.getenv('KEY_SERVER_URL', 'https://ems.isitdoneyet.co.uk/api/key/active')
+webhook_channel = int(os.getenv('WEBHOOK_CHANNEL'))
 
 intents = discord.Intents.default()
 intents.members = True
@@ -38,17 +40,23 @@ async def activeget():
     try:
         err = "the state could not be fetched"
         auth = aiohttp.BasicAuth(USER, PASS)
-        async with aiohttp.request('GET', 'https://ems.isitdoneyet.co.uk/api/key/active', auth=auth) as r:
+        async with aiohttp.request('GET', key_server_url, auth=auth) as r:
             if r.status == 200 and r.content_type == 'application/json':
                 state = await r.json()
 
-                state['discord_id'] = state.get('discord_id', 0)
+                if state.get('discord_id'):
+                    state['discord_id'] = state.get('discord_id')
+                    member = guild.get_member(int(state['discord_id']))
+                    state['display_name'] = member.display_name
+                else:
+                    state['discord_id'] = 0
+
                 return state
             else:
                 err = await r.text()
                 raise Exception(f'Response was not as expected. Status: {r.status}, Content-Type: {r.content_type}')
     except:
-        print("there was an error fetching the current state" + err)
+        print(f'there was an error fetching the current state: {err}')
         return{"nick": "error", "priority": "10"}
 
 
@@ -75,7 +83,7 @@ async def generatecard(user):
         except:
             name = user.get("nick")
             usericon = user.get("usericon")
-            print(str(user) + "discord user data scrape failed? falling back to nick")
+            print(f'{user} discord user data scrape failed? falling back to nick')
         embed.set_author(name=name, url=user.get("nicklink"), icon_url=usericon)
     return embed
 
@@ -99,14 +107,16 @@ async def streamercard(user):
 @bot.event
 async def on_message(message):
     if message.webhook_id != None:
-        if message.content == "blorp":
-            user = await activeget()
-            embed = await streamercard(user)
-            if int(user.get("priority")) > 10:
-                content = "Come watch " + user.get("nick") + " LIVE " + str(ping.mention)
-            else:
-                content = "Hold MuZaK provided by: " + user.get("nick")
-            await channel.send(embed=embed, content=content)
+        if isinstance(message.channel, discord.TextChannel) and message.channel.id == webhook_channel:
+            if message.content == "blorp":
+                user = await activeget()
+                embed = await streamercard(user)
+                display_name = user.get('display_name', user.get('nick'))
+                if int(user.get("priority")) > 10:
+                    content = f'Come watch {display_name} LIVE {ping.mention}'
+                else:
+                    content = f'Hold MuZaK provided by: {display_name}'
+                await channel.send(embed=embed, content=content)
 
 #        elif message.content[0] == "+":
 #            if message.content.startswith["+nowplaying"]:
